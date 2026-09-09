@@ -1,0 +1,487 @@
+/*
+  Motion Handoff · Project Atlas
+  Ferramenta de tela cheia: coluna de hierarquia fixa à esquerda, timeline à
+  direita. O eixo horizontal é progressão relativa — nunca calendário —, mas a
+  estrutura é a de uma timeline, para que datas reais entrem depois sem
+  reconstruir a interface.
+
+  Dark é o tema base. Claro existe para quem pediu claro no sistema.
+*/
+
+:root {
+  color-scheme: dark;
+
+  --bg: #0c0c10;
+  --rail-bg: #101015;
+  --row-hover: #16161d;
+  --line: #1e1e26;
+  --line-soft: #17171d;
+  --grid: #16161c;
+  --grid-edge: #26262f;
+
+  --txt: #eaeaef;
+  --txt-2: #9a9aa8;
+  --txt-3: #62626e;
+
+  /* Três cores fazem trabalho semântico. Nenhuma outra é usada. */
+  --done: #6d7ce8;
+  --current: #e8974a;
+  --blocked: #dd5c78;
+
+  /* Massa neutra: futuro é barra de verdade, não contorno. */
+  --neutral: #23232c;
+  --neutral-hi: #2e2e39;
+
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+
+  --rail: clamp(258px, 24vw, 320px);
+  /* Folga à direita do eixo: o fim da jornada (x = 1) precisa caber inteiro,
+     em vez de ser cortado pela borda do viewport. */
+  --gut: 16px;
+  --pad: 18px;
+  --timeline-min: 640px;
+  --ruler-h: 34px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+    --bg: #fbfbfa;
+    --rail-bg: #f4f4f2;
+    --row-hover: #eeeeec;
+    --line: #e2e2de;
+    --line-soft: #ebebe7;
+    --grid: #ecece8;
+    --grid-edge: #d8d8d2;
+    --txt: #17171b;
+    --txt-2: #62626d;
+    --txt-3: #92929c;
+    --done: #4d5cd0;
+    --current: #b4651b;
+    --blocked: #c23a58;
+    --neutral: #dcdcd5;
+    --neutral-hi: #c8c8c0;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--txt);
+  font: 13px/1.45 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+.fallback {
+  max-width: 40rem;
+  margin: 4rem auto;
+  padding: 0 1.5rem;
+  color: var(--txt-2);
+}
+
+/* ── shell ───────────────────────────────────────────────────────── */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.topbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 50px;
+  padding: 0 var(--pad);
+  border-bottom: 1px solid var(--line);
+  background: var(--rail-bg);
+}
+
+.topbar h1 {
+  margin: 0;
+  font: 600 15px/1 var(--sans);
+  letter-spacing: -.012em;
+}
+
+.ext {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--txt-2);
+  font-size: 12px;
+  text-decoration: none;
+  transition: color .14s ease, border-color .14s ease, background .14s ease;
+}
+
+.ext:hover { color: var(--txt); border-color: var(--grid-edge); background: var(--row-hover); }
+
+/* O board rola nos dois eixos; a coluna de hierarquia e a régua ficam. */
+.board {
+  flex: 1;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.canvas {
+  position: relative;
+  min-width: calc(var(--rail) + var(--timeline-min) + var(--gut));
+  /* O canvas ocupa a altura toda mesmo com poucas linhas: as verticais do eixo
+     descem até o fim, como numa timeline de verdade, em vez de pararem na
+     última linha e deixarem o rodapé órfão. */
+  min-height: 100%;
+  padding-bottom: 48px;
+}
+
+/* ── linha ───────────────────────────────────────────────────────── */
+
+.row {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr) var(--gut);
+  align-items: stretch;
+  height: 36px;
+}
+
+.row--horizon { height: 46px; }
+.row--phase { height: 42px; }
+.row--lane { height: 32px; }
+
+.rname {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 0 12px 0 var(--pad);
+  background: var(--rail-bg);
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.rtrack {
+  position: relative;
+  border-bottom: 1px solid var(--line-soft);
+  /* Grid vertical: doze divisões finas, atrás de tudo o que a linha desenha. */
+  background-image: repeating-linear-gradient(
+    to right, var(--grid) 0 1px, transparent 1px calc(100% / 12)
+  );
+}
+
+.rgut { border-bottom: 1px solid var(--line-soft); }
+.ruler .rgut { border-bottom: 1px solid var(--line); }
+.row--horizon .rgut { border-top: 1px solid var(--line); background-color: color-mix(in srgb, var(--rail-bg) 82%, var(--txt) 4%); }
+
+.row:hover .rname { background: var(--row-hover); }
+.row:hover .rtrack,
+.row:hover .rgut { background-color: var(--row-hover); }
+
+/* O horizonte pesa mais: fundo próprio e régua superior. */
+.row--horizon .rname,
+.row--horizon .rtrack {
+  border-top: 1px solid var(--line);
+  background-color: color-mix(in srgb, var(--rail-bg) 82%, var(--txt) 4%);
+}
+
+.row--horizon:hover .rname,
+.row--horizon:hover .rtrack { background-color: var(--row-hover); }
+
+/* ── coluna de hierarquia ────────────────────────────────────────── */
+
+.chev {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--txt-3);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: transform .15s ease, color .14s ease, background .14s ease;
+}
+
+.chev:hover { color: var(--txt); background: var(--neutral); }
+.chev:focus-visible { outline: 2px solid var(--current); outline-offset: 1px; }
+.chev[aria-expanded="true"] { transform: rotate(90deg); }
+
+.ico { flex: none; width: 16px; height: 16px; display: grid; place-items: center; color: var(--txt-3); }
+.ico[data-state="Done"] { color: var(--done); }
+.ico[data-state="Now"],
+.ico[data-state="Review"],
+.ico[data-state="Approved"] { color: var(--current); }
+.ico[data-state="Blocked"] { color: var(--blocked); }
+
+.nlabel {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+a.nlabel:hover .txt { color: var(--txt); text-decoration: underline; text-underline-offset: 2.5px; }
+
+.key {
+  flex: none;
+  font: 500 10.5px/1 var(--mono);
+  letter-spacing: .04em;
+  color: var(--txt-3);
+}
+
+.row--horizon .txt { font: 600 11.5px/1 var(--sans); letter-spacing: .13em; text-transform: uppercase; }
+.row--phase .txt { font-size: 13.5px; font-weight: 500; color: var(--txt); }
+.row--phase[data-current="true"] .txt,
+.row--phase[data-current="true"] .key { color: var(--current); }
+.row--item .txt { font-size: 12.5px; color: var(--txt-2); }
+.row--lane .txt { font-size: 12px; color: var(--txt-3); }
+
+/* Recuo por nível, dentro da coluna — nunca na linha, para o eixo não deslizar. */
+.lvl-1 { padding-left: calc(var(--pad) + 14px); }
+.lvl-2 { padding-left: calc(var(--pad) + 34px); }
+
+/* ── barras ──────────────────────────────────────────────────────── */
+/*
+  `--s` e `--e` são início e fim no eixo relativo `0..1`; `--f` é a fração
+  concluída. Os três vêm da projeção. A mesma assinatura recebe datas reais
+  no dia em que existirem.
+*/
+
+.bar {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: calc(var(--s) * 100%);
+  width: calc((var(--e) - var(--s)) * 100%);
+  min-width: 14px;
+  height: 26px;
+  border-radius: 5px;
+  background: var(--neutral);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  text-decoration: none;
+  container-type: inline-size;
+  transition: filter .14s ease, box-shadow .14s ease;
+}
+
+.row--item .bar { height: 22px; border-radius: 4px; }
+.row--lane .bar { height: 10px; border-radius: 3px; }
+
+/* O preenchimento é o progresso, e só ele. */
+.bar > i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--f) * 100%);
+  background: var(--done);
+  transition: width .2s ease;
+}
+
+.bar[data-done="true"] { background: var(--done); }
+.bar[data-band="active"] { background: var(--neutral-hi); }
+
+.bar[data-state="Blocked"] {
+  background: color-mix(in srgb, var(--blocked) 22%, var(--neutral));
+  box-shadow: inset 2px 0 0 var(--blocked);
+}
+
+/* Suspenso: presente, sem avanço. */
+.bar[data-state="Waiting"] {
+  background: repeating-linear-gradient(
+    -45deg, var(--neutral-hi) 0 5px, var(--neutral) 5px 10px
+  );
+}
+
+.row--phase[data-current="true"] .bar { box-shadow: 0 0 0 1px var(--current); }
+
+a.bar:hover { filter: brightness(1.22); }
+@media (prefers-color-scheme: light) { a.bar:hover { filter: brightness(.94); } }
+
+/* Fração dentro da barra, e só quando algo já fechou e há espaço para ela. */
+/*
+  A fração fica encostada à direita, portanto quase sempre sobre a parte NÃO
+  preenchida da barra — daí a cor de texto ser a regra, e a invertida valer só
+  quando a barra inteira está preenchida.
+*/
+.bval {
+  position: relative;
+  padding: 0 8px;
+  font: 500 10.5px/1 var(--mono);
+  color: var(--txt-2);
+  opacity: 0;
+  white-space: nowrap;
+  transition: opacity .14s ease;
+}
+
+.bar[data-done="true"] .bval { color: var(--bg); }
+
+@container (min-width: 66px) { .bval { opacity: .95; } }
+
+/* ── régua ───────────────────────────────────────────────────────── */
+
+.ruler {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  height: var(--ruler-h);
+  background: var(--bg);
+}
+
+.ruler .rname {
+  z-index: 4;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  font: 600 10px/1 var(--sans);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--txt-3);
+}
+
+.ruler .rtrack {
+  border-bottom: 1px solid var(--line);
+  background-image: repeating-linear-gradient(
+    to right, var(--grid-edge) 0 1px, transparent 1px calc(100% / 12)
+  );
+}
+
+/* Cada segmento nomeia a etapa que ocupa aquele trecho do eixo — estrutura,
+   não tempo. É esta faixa que passa a mostrar meses quando houver datas. */
+.seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--s) * 100%);
+  width: calc((var(--e) - var(--s)) * 100%);
+  display: flex;
+  align-items: center;
+  padding-left: 9px;
+  border-left: 1px solid var(--grid-edge);
+  font: 500 10px/1 var(--mono);
+  letter-spacing: .1em;
+  color: var(--txt-3);
+}
+
+.seg[data-current="true"] { color: var(--current); }
+
+/* ── sobreposição: limites de fase e marcador de agora ───────────── */
+
+.overlay {
+  position: absolute;
+  left: var(--rail);
+  right: var(--gut);
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.edge {
+  position: absolute;
+  top: var(--ruler-h);
+  bottom: 0;
+  left: calc(var(--x) * 100%);
+  width: 1px;
+  background: var(--grid-edge);
+}
+
+.now {
+  position: absolute;
+  top: var(--ruler-h);
+  bottom: 0;
+  left: calc(var(--x) * 100%);
+  width: 1px;
+  background: var(--current);
+  z-index: 2;
+}
+
+/* A cabeça fica na régua, acima do fundo opaco dela — daí viver ali e não na
+   sobreposição, que passa por baixo. */
+.now-head {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--x) * 100%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 7px;
+  font: 600 9px/1 var(--sans);
+  letter-spacing: .16em;
+  color: var(--current);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.now-head::before {
+  content: "";
+  position: absolute;
+  left: -3.5px;
+  bottom: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--current);
+}
+
+/* Losango de consolidação: marca um ponto do eixo, não um intervalo. */
+.rmark {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--x) * 100%);
+  width: 11px;
+  height: 11px;
+  margin: -6px 0 0 -6px;
+  transform: rotate(45deg);
+  border: 1px solid var(--txt-3);
+  background: var(--bg);
+}
+
+/* ── grupos e animação ───────────────────────────────────────────── */
+
+.group {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows .16s ease;
+}
+
+.group[data-open="false"] { grid-template-rows: 0fr; }
+.group > .group-inner { overflow: hidden; min-height: 0; }
+
+/* ── problema de fonte ───────────────────────────────────────────── */
+
+.trouble {
+  position: sticky;
+  left: 0;
+  padding: 10px var(--pad);
+  font: 11.5px/1.4 var(--mono);
+  color: var(--blocked);
+}
+
+/* ── responsivo ──────────────────────────────────────────────────── */
+
+@media (max-width: 720px) {
+  :root { --rail: 190px; --pad: 12px; --timeline-min: 520px; }
+  .row--item .txt { font-size: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, .group { transition: none !important; }
+}

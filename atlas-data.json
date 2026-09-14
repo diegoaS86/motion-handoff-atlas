@@ -61,7 +61,7 @@
             "kind": "feature",
             "key": "P3",
             "id": "P3-SHOWCASE",
-            "title": "Prova vertical especializada do Specialized Output Web",
+            "title": "Specialized vertical proof of the Specialized Output Web",
             "status": "Blocked",
             "done": false,
             "progress": {
@@ -166,7 +166,7 @@
             "kind": "feature",
             "key": "CORE-0A",
             "id": "CORE-0A-BUTTON-TRIM-OFFSET",
-            "title": "Fixture auxiliar CORE 0A / Button Trim Offset",
+            "title": "Auxiliary fixture CORE 0A / Button Trim Offset",
             "status": "Backlog",
             "done": false,
             "progress": {
@@ -187,7 +187,7 @@
             "kind": "feature",
             "key": "CORE-0B",
             "id": "CORE-0B-TRIM-INDIVIDUALLY",
-            "title": "Fixture auxiliar CORE 0B / Trim Individually",
+            "title": "Auxiliary fixture CORE 0B / Trim Individually",
             "status": "Backlog",
             "done": false,
             "progress": {

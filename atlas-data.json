@@ -6,10 +6,10 @@
   "mvp": {
     "href": "https://github.com/users/diegoaS86/projects/1/views/6",
     "progress": {
-      "done": 3,
+      "done": 4,
       "total": 19,
       "state": "PARTIAL",
-      "ratio": 0.15789473684210525
+      "ratio": 0.21052631578947367
     },
     "marker": 0.08,
     "checkpoint": {
@@ -25,10 +25,10 @@
         "expandable": true,
         "href": "https://github.com/users/diegoaS86/projects/1/views/5?filterQuery=phase%3AMOTION_CORE_2D",
         "progress": {
-          "done": 3,
+          "done": 4,
           "total": 16,
           "state": "PARTIAL",
-          "ratio": 0.1875
+          "ratio": 0.25
         },
         "lane": {
           "start": 0,
@@ -65,10 +65,10 @@
             "status": "Backlog",
             "done": false,
             "progress": {
-              "done": 1,
+              "done": 2,
               "total": 3,
               "state": "PARTIAL",
-              "ratio": 0.3333333333333333
+              "ratio": 0.6666666666666666
             },
             "href": "https://github.com/users/diegoaS86/projects/1/views/5?filterQuery=MVP_F1_MC2D_P3",
             "band": "future",

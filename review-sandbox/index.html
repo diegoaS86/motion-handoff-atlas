@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Motion Handoff — Human Review</title>
+  <link rel="stylesheet" href="smoke.css">
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">Public R&amp;D review sandbox · infrastructure smoke</p>
+      <h1>Motion Handoff — Human Review</h1>
+    </header>
+
+    <dl class="facts">
+      <dt>Target</dt><dd id="target">loading manifest…</dd>
+      <dt>Label</dt><dd id="label">—</dd>
+      <dt>Source commit</dt><dd id="sha" class="mono">—</dd>
+      <dt>Review kind</dt><dd id="kind">—</dd>
+      <dt>Files</dt><dd id="files">—</dd>
+    </dl>
+
+    <section class="checks" aria-label="Static asset checks">
+      <p id="check-css" class="check" data-state="fail">CSS <span>not applied</span></p>
+      <p id="check-js" class="check" data-state="fail">JavaScript <span>not running</span></p>
+      <p id="check-manifest" class="check" data-state="fail">Manifest <span>not loaded</span></p>
+    </section>
+
+    <section class="stage" aria-label="Interactive control">
+      <div class="track"><div id="dot" class="dot"></div></div>
+      <button id="toggle" type="button" disabled>Play</button>
+      <p class="hint">Tap to start and stop the motion. Taps: <output id="taps">0</output></p>
+    </section>
+
+    <p class="note">This page checks the remote review path only. It is a disposable public copy and a visual sanity check, not
+      After Effects fidelity, and it carries no fixture content.</p>
+    <p class="viewport mono" id="viewport"></p>
+  </main>
+  <script src="smoke.js"></script>
+</body>
+</html>

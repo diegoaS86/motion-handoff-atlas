@@ -1,0 +1,27 @@
+{
+  "schema": "motion-handoff/review-sandbox-manifest@1",
+  "surface": "PUBLIC_RND_SANDBOX",
+  "target": "smoke",
+  "label": "infra smoke",
+  "source_sha": "616664fade8628394b420dafe9db34c7bb808ba0",
+  "review_kind": "VISUAL_SANITY_CHECK",
+  "ae_reference": "NOT_COMPARED",
+  "entry": "index.html",
+  "files": [
+    {
+      "path": "index.html",
+      "bytes": 1742,
+      "sha256": "f9e01a0be7f8ce3193a60dc5c9a7018e8cb282893dbcd81b7fc51fa8e676b476"
+    },
+    {
+      "path": "smoke.css",
+      "bytes": 2343,
+      "sha256": "b0f97bbbd0c637d5f704db3645aa50d4a009ee34efa62dc910f13d0fb5bef1fc"
+    },
+    {
+      "path": "smoke.js",
+      "bytes": 1988,
+      "sha256": "8759d883f5bc7fd940de7c86314f03bce6871494f3a20d4f3fa4e3996a9487b8"
+    }
+  ]
+}

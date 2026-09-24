@@ -104,7 +104,7 @@
             "key": "P5",
             "id": "P5-TIMING-KEYFRAMES",
             "title": "Fixture P5 / Timing + Keyframes",
-            "status": "Backlog",
+            "status": "Next",
             "done": false,
             "progress": {
               "done": 0,
@@ -113,7 +113,7 @@
               "ratio": 0
             },
             "href": "https://github.com/users/diegoaS86/projects/1/views/5?filterQuery=MVP_F1_MC2D_P5",
-            "band": "future",
+            "band": "active",
             "lane": {
               "start": 0.25,
               "end": 0.3333333333333333,
@@ -125,7 +125,7 @@
             "key": "P6",
             "id": "P6-EXPRESSION-CONTROLS",
             "title": "Fixture P6 / Expression Controls + References",
-            "status": "Backlog",
+            "status": "Ready",
             "done": false,
             "progress": {
               "done": 0,
@@ -134,11 +134,11 @@
               "ratio": 0
             },
             "href": "https://github.com/users/diegoaS86/projects/1/views/5?filterQuery=MVP_F1_MC2D_P6",
-            "band": "future",
+            "band": "active",
             "lane": {
-              "start": 0.25,
+              "start": 0.3333333333333333,
               "end": 0.41666666666666663,
-              "width": 0.16666666666666666
+              "width": 0.08333333333333333
             }
           },
           {
@@ -146,7 +146,7 @@
             "key": "P7",
             "id": "P7-LOOPS-SHAPE-ANIMATION",
             "title": "Fixture P7 / Loops + Shape Animation",
-            "status": "Backlog",
+            "status": "Ready",
             "done": false,
             "progress": {
               "done": 0,
@@ -155,11 +155,11 @@
               "ratio": 0
             },
             "href": "https://github.com/users/diegoaS86/projects/1/views/5?filterQuery=MVP_F1_MC2D_P7",
-            "band": "future",
+            "band": "active",
             "lane": {
-              "start": 0.25,
-              "end": 0.5,
-              "width": 0.25
+              "start": 0.41666666666666663,
+              "end": 0.49999999999999994,
+              "width": 0.08333333333333333
             }
           },
           {
@@ -167,7 +167,7 @@
             "key": "CORE-0A",
             "id": "CORE-0A-BUTTON-TRIM-OFFSET",
             "title": "Auxiliary fixture CORE 0A / Button Trim Offset",
-            "status": "Backlog",
+            "status": "Ready",
             "done": false,
             "progress": {
               "done": 0,
@@ -176,11 +176,11 @@
               "ratio": 0
             },
             "href": "https://github.com/users/diegoaS86/projects/1/views/5?filterQuery=MVP_F1_MC2D_CORE-0A",
-            "band": "future",
+            "band": "active",
             "lane": {
-              "start": 0.25,
-              "end": 0.5833333333333333,
-              "width": 0.3333333333333333
+              "start": 0.5,
+              "end": 0.5833333333333334,
+              "width": 0.08333333333333333
             }
           },
           {
@@ -188,7 +188,7 @@
             "key": "CORE-0B",
             "id": "CORE-0B-TRIM-INDIVIDUALLY",
             "title": "Auxiliary fixture CORE 0B / Trim Individually",
-            "status": "Backlog",
+            "status": "Ready",
             "done": false,
             "progress": {
               "done": 0,
@@ -197,11 +197,11 @@
               "ratio": 0
             },
             "href": "https://github.com/users/diegoaS86/projects/1/views/5?filterQuery=MVP_F1_MC2D_CORE-0B",
-            "band": "future",
+            "band": "active",
             "lane": {
-              "start": 0.25,
+              "start": 0.5833333333333333,
               "end": 0.6666666666666666,
-              "width": 0.41666666666666663
+              "width": 0.08333333333333333
             }
           }
         ]

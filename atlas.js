@@ -3,9 +3,13 @@
 
   Lê atlas-data.json e desenha uma timeline. Nada é decidido aqui: nenhum
   estado, percentual, conclusão de fase ou coordenada do eixo nasce neste
-  arquivo. A geometria (`start`, `end`, `ratio`, `marker`) vem inteira da
-  projeção, e é por isso que ela pode passar a ser temporal sem que a interface
-  mude.
+  arquivo. A geometria (`start`, `end`, `ratio`, `marker`, `core`) vem inteira
+  da projeção, e é por isso que ela pode passar a ser temporal sem que a
+  interface mude.
+
+  Active Execution Days (D-015) chegam prontos em `aed`: o Actual de uma linha
+  concluída, ou o Estimate e a Confidence de uma aberta. Esta página só os
+  escreve como texto — nunca os converte em horas, datas ou prazo.
 
   O Atlas não executa mutação: há uma leitura de JSON e links que abrem o
   GitHub Project em outra aba.
@@ -98,6 +102,54 @@
     return node;
   }
 
+  // ── Active Execution Days ──────────────────────────────────────────
+
+  /* Confidence → rótulo. Vocabulário, nunca percentual. */
+  var CONFIDENCE_LABEL = { HIGH: 'High', MEDIUM: 'Medium', LOW: 'Low' };
+
+  /**
+   * `~11 AED` para um Actual; `est. 3–5 AED · Low` para um Estimate, com
+   * `· 4 AED used` quando há progresso confirmado.
+   */
+  function aedText(aed) {
+    if (!aed) return null;
+    if (aed.kind === 'ACTUAL') return '~' + aed.days + ' AED';
+    var text = 'est. ' + aed.min + '–' + aed.max + ' AED · ' + (CONFIDENCE_LABEL[aed.confidence] || aed.confidence);
+    return aed.used === null || aed.used === undefined ? text : text + ' · ' + aed.used + ' AED used';
+  }
+
+  /** O mesmo dado, por extenso, para o hover. */
+  function aedTitle(aed) {
+    if (!aed) return null;
+    var confidence = CONFIDENCE_LABEL[aed.confidence] || aed.confidence;
+    if (aed.kind === 'ACTUAL') return 'Actual ~' + aed.days + ' AED (' + confidence + ')';
+    var title = 'Estimate ' + aed.min + '–' + aed.max + ' AED (' + confidence + '): base ' + aed.min + ', contingency to ' + aed.max;
+    return aed.used === null || aed.used === undefined ? title : title + ' · ' + aed.used + ' AED used';
+  }
+
+  /** A parte preenchida de um Estimate: a base, ou o progresso confirmado além dela. */
+  function core(spec) {
+    if (!spec.core) return null;
+    return el('span', {
+      class: 'bcore',
+      style: '--s:' + spec.core.start + ';--e:' + spec.core.end,
+      'aria-hidden': 'true',
+    });
+  }
+
+  /** O AED escrito logo depois do fim da barra, onde cabe mesmo numa barra curta. */
+  function aedLabel(spec) {
+    var text = aedText(spec.aed);
+    if (!text || !spec.lane) return null;
+    return el('span', {
+      class: 'baed',
+      style: '--e:' + spec.lane.end,
+      'data-aed': spec.aed.kind.toLowerCase(),
+      'data-confidence': spec.aed.confidence,
+      text: text,
+    });
+  }
+
   // ── barras ─────────────────────────────────────────────────────────
 
   /**
@@ -118,6 +170,8 @@
       'data-band': spec.band || null,
       'data-state': spec.status || null,
       'data-done': done ? 'true' : null,
+      'data-aed': spec.aed ? spec.aed.kind.toLowerCase() : null,
+      'data-confidence': spec.aed && spec.aed.kind === 'ESTIMATE' ? spec.aed.confidence : null,
       title: tooltip(spec),
     };
     if (spec.href) {
@@ -150,6 +204,7 @@
     } else if (spec.progress) {
       parts.push('sem unidades canônicas');
     }
+    if (spec.aed) parts.push(aedTitle(spec.aed));
     return parts.join(' · ');
   }
 
@@ -203,7 +258,7 @@
       'data-current': spec.current ? 'true' : null,
     }, [
       el('div', { class: 'rname ' + (spec.level ? 'lvl-' + spec.level : '') }, [lead, label]),
-      el('div', { class: 'rtrack' }, [spec.track === false ? null : bar(spec)]),
+      el('div', { class: 'rtrack' }, spec.track === false ? [] : [bar(spec), core(spec), aedLabel(spec)]),
       el('div', { class: 'rgut' }),
     ]);
 
@@ -223,6 +278,8 @@
       status: item.status,
       done: item.done,
       lane: item.lane,
+      core: item.core,
+      aed: item.aed,
       progress: item.progress,
       band: item.band,
     });

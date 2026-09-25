@@ -1,9 +1,9 @@
 /*
   Motion Handoff · Project Atlas
   Ferramenta de tela cheia: coluna de hierarquia fixa à esquerda, timeline à
-  direita. O eixo horizontal é progressão relativa — nunca calendário —, mas a
-  estrutura é a de uma timeline, para que datas reais entrem depois sem
-  reconstruir a interface.
+  direita. O eixo horizontal é progressão relativa — nunca calendário. Dentro
+  de uma fase medida, o comprimento de uma linha é proporcional aos seus
+  Active Execution Days (D-015), e ainda assim nenhuma data é desenhada.
 
   Dark é o tema base. Claro existe para quem pediu claro no sistema.
 */
@@ -161,7 +161,8 @@ body {
 .rname {
   position: sticky;
   left: 0;
-  z-index: 2;
+  /* Acima do rótulo de AED (2), que por sua vez fica acima do marcador (1). */
+  z-index: 3;
   display: flex;
   align-items: center;
   gap: 7px;
@@ -260,8 +261,8 @@ a.nlabel:hover .txt { color: var(--txt); text-decoration: underline; text-underl
 /* ── barras ──────────────────────────────────────────────────────── */
 /*
   `--s` e `--e` são início e fim no eixo relativo `0..1`; `--f` é a fração
-  concluída. Os três vêm da projeção. A mesma assinatura recebe datas reais
-  no dia em que existirem.
+  concluída. Os três vêm da projeção, na escala relativa ou em Active
+  Execution Days (D-015) — nunca em datas.
 */
 
 .bar {
@@ -297,6 +298,24 @@ a.nlabel:hover .txt { color: var(--txt); text-decoration: underline; text-underl
 
 .bar[data-done="true"] { background: var(--done); }
 .bar[data-band="active"] { background: var(--neutral-hi); }
+
+/*
+  Estimate em Active Execution Days (D-015). `.bcore` é a parte preenchida: a
+  base do Estimate, ou o progresso confirmado quando passa dela. A barra inteira
+  vai além, até o máximo, e esse trecho é a contingência — sempre vazada,
+  porque é incerteza, não trabalho previsto. A Confidence muda só o traço do
+  contorno — contínuo (High), tracejado (Medium), pontilhado (Low) — e nunca
+  o comprimento: Confidence não altera o número estimado.
+  `:where()` mantém a especificidade de um atributo só, para que Blocked e
+  Waiting, declarados depois, continuem vencendo.
+*/
+.bar[data-aed="estimate"] {
+  background: transparent;
+  outline: 1px solid var(--txt-3);
+  outline-offset: -1px;
+}
+.bar[data-aed="estimate"]:where([data-confidence="MEDIUM"]) { outline-style: dashed; }
+.bar[data-aed="estimate"]:where([data-confidence="LOW"]) { outline-style: dotted; }
 
 .bar[data-state="Blocked"] {
   background: color-mix(in srgb, var(--blocked) 22%, var(--neutral));
@@ -335,18 +354,56 @@ a.bar:hover { filter: brightness(1.22); }
 
 @container (min-width: 66px) { .bval { opacity: .95; } }
 
+/* A parte preenchida do Estimate: a base, ou o progresso confirmado além dela.
+   Só forma, sem clique. */
+.bcore {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: calc(var(--s) * 100%);
+  width: calc((var(--e) - var(--s)) * 100%);
+  height: 22px;
+  border-radius: 4px 0 0 4px;
+  background: color-mix(in srgb, var(--txt-3) 55%, var(--neutral-hi));
+  pointer-events: none;
+}
+
+/* O AED escrito logo após o fim da barra: cabe mesmo quando a barra é curta. */
+.baed {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: calc(var(--e) * 100%);
+  margin-left: 4px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font: 500 10.5px/1 var(--mono);
+  color: var(--txt-2);
+  white-space: nowrap;
+  pointer-events: none;
+  /* Acima do marcador de agora, que cruza o rótulo de quem termina perto
+     dele; o fundo da própria linha recorta o marcador só atrás do texto. */
+  z-index: 2;
+  background: var(--bg);
+}
+
+.row:hover .baed { background: var(--row-hover); }
+
+.baed[data-aed="actual"] { color: var(--done); }
+.baed[data-confidence="LOW"] { color: var(--txt-3); }
+
 /* ── régua ───────────────────────────────────────────────────────── */
 
 .ruler {
   position: sticky;
   top: 0;
-  z-index: 3;
+  z-index: 4;
   height: var(--ruler-h);
   background: var(--bg);
 }
 
 .ruler .rname {
-  z-index: 4;
+  z-index: 5;
   background: var(--bg);
   border-bottom: 1px solid var(--line);
   font: 600 10px/1 var(--sans);
